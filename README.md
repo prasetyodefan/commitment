@@ -119,4 +119,49 @@ git commit -m "Pesan commit"
 git push origin main
 ```
 
+
+# 🔹 Setup Workflow Permissions (Read and Write)
+
+## 1️⃣ Mengatur Workflow Permissions di Repository
+1. Buka **GitHub Repository** yang ingin kamu atur.
+2. Pergi ke **Settings** > **Actions** > **General**.
+3. Scroll ke bagian **Workflow permissions**.
+4. Pilih **Read and write permissions**.
+5. Jika perlu, aktifkan **Allow GitHub Actions to create and approve pull requests**.
+6. Klik **Save**.
+
+---
+
+## 2️⃣ Mengatur Permissions dalam Workflow YAML
+Tambahkan bagian `permissions` di dalam file workflow (`.github/workflows/your-workflow.yml`):
+
+```yaml
+name: Example Workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  example-job:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write  # Opsional, jika ingin mengelola PR
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run a Script
+        run: echo "Workflow running with write permissions!"
+```
+
+---
+
+## 🎉 Workflow Sekarang Punya **Read & Write Permissions**!
+Setelah langkah-langkah di atas, GitHub Actions dalam repository ini bisa **membaca dan menulis** ke repository, termasuk mengubah konten, membuat branch, atau mengelola issue dan PR.
+
 Jika ada kendala, cek kembali langkah-langkah di atas atau buka GitHub Docs. 🚀
