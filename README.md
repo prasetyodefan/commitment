@@ -12,7 +12,7 @@ ls -la ~/.ssh
 Jika belum ada `id_rsa.pub`, buat SSH key baru:
 
 ```bash
-ssh-keygen -t rsa -b 4096 -C "evesuz100@gmail.com"
+ssh-keygen -t rsa -b 4096 -C "user.email@gmail.com"
 ```
 
 Tekan Enter untuk lokasi default, dan kosongkan passphrase.
