@@ -1,6 +1,6 @@
-# 🚀 Setup Git & Push ke Repository `commitment.git` dengan SSH
+# 🚀 Setup Git & Push ke Repository dengan SSH
 
-Panduan ini akan membantu kamu mengatur SSH key agar bisa push ke repo GitHub tanpa perlu setup ulang setiap kali.
+mengatur SSH key agar bisa push ke repo GitHub tanpa perlu setup ulang setiap kali.
 
 ## 🔹 1. Buat SSH Key (Jika Belum Ada)
 Cek apakah sudah ada SSH key:
@@ -42,7 +42,7 @@ cat ~/.ssh/id_rsa.pub
 ```
 
 1. Copy hasilnya.
-2. Buka GitHub SSH Keys.
+2. Buka [GitHub SSH Keys](https://github.com/settings/keys).
 3. Klik **New SSH Key**, beri nama (misal: "Laptop"), lalu paste.
 4. Klik **Add SSH Key**.
 
@@ -50,8 +50,8 @@ cat ~/.ssh/id_rsa.pub
 Set identitas Git agar commit sesuai dengan akun GitHub kamu:
 
 ```bash
-git config --global user.name "evesuz"
-git config --global user.email "evesuz100@gmail.com"
+git config --global user.name "user.name"
+git config --global user.email "user.email"
 ```
 
 Cek apakah sudah benar:
@@ -64,14 +64,14 @@ git config --global --list
 Jika belum clone repo:
 
 ```bash
-git clone git@github.com:evesuz/commitment.git
-cd commitment
+git clone git@github.com:user.name/repo.git
+cd repo
 ```
 
 Jika sudah clone dengan HTTPS, ubah ke SSH:
 
 ```bash
-git remote set-url origin git@github.com:evesuz/commitment.git
+git remote set-url origin git@github.com:user.name/repo.git
 ```
 
 ## 🔹 6. Tes Koneksi ke GitHub
@@ -84,14 +84,14 @@ ssh -T git@github.com
 Jika berhasil, akan muncul:
 
 ```rust
-Hi evesuz! You've successfully authenticated...
+Hi user.name! You've successfully authenticated...
 ```
 
 ## 🔹 7. Push ke Repository
 Masuk ke folder repo:
 
 ```bash
-cd commitment
+cd repo
 ```
 
 Lalu jalankan:
