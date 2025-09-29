@@ -1,21 +1,21 @@
-name: Automated Commit
+name: Automated Commit - Flexible Daily Random
 
 on:
   push:
-    branches: [main] # Pastikan hanya berjalan di branch main
+    branches: [main]
 
+  # Run every hour; the workflow decides whether to actually commit.
   schedule:
-    - cron: '0 */12 * * *' # Eksekusi setiap 12 jam
+    - cron: '0 * * * *' # setiap jam: workflow memilih acak apakah melakukan commit (lihat logika)
 
-  workflow_dispatch: # Memungkinkan pemicu manual dari UI GitHub
+  workflow_dispatch:
 
 permissions:
-  contents: write # Memberikan izin untuk menulis ke repo
+  contents: write
 
 jobs:
   update_commit:
-    runs-on: ubuntu-latest # Menjalankan di runner Ubuntu terbaru
-
+    runs-on: ubuntu-latest
     steps:
       - name: Setup Debug Information
         run: echo "::debug::Triggered by ref = ${{ github.ref }}"
@@ -27,29 +27,125 @@ jobs:
           fetch-depth: 0
 
       - name: Pull Latest Changes
-        run: |
-          git pull origin main --rebase || echo "No changes to pull."
+        run: git pull origin main --rebase || echo "No changes to pull."
 
-      - name: Update Timestamp File
+      - name: Decide today's target and whether to run now
+        id: decide
         run: |
-          current_time=$(date '+%Y-%m-%d %H:%M:%S')
-          echo "Updated on $current_time" > TIMESTAMP.txt
+          mkdir -p .github
+          python3 - <<'PY' > /tmp/decision.json
+import json, os, random
+from datetime import datetime, timedelta
+state_path=".github/schedule_state.json"
+now = datetime.utcnow() + timedelta(hours=7)  # Jakarta = UTC+7
+today = now.strftime("%Y-%m-%d")
+current_hour = int(now.strftime("%H"))
+remaining_slots = 24 - current_hour
+# load existing state
+try:
+    if os.path.exists(state_path):
+        with open(state_path,'r') as f:
+            s=json.load(f)
+    else:
+        s={}
+except:
+    s={}
+# new day -> pick target 1..6 and reset runs_done
+if s.get("date") != today:
+    s = {"date": today, "target_runs": random.randint(1,6), "runs_done": 0}
+runs_done = s.get("runs_done",0)
+target = s.get("target_runs",1)
+remaining_needed = target - runs_done
+if remaining_needed <= 0:
+    should_run = False
+else:
+    prob = remaining_needed/remaining_slots if remaining_slots>0 else 1
+    if prob >= 1:
+        should_run = True
+    else:
+        should_run = random.random() <= prob
+if should_run:
+    s["runs_done"] = runs_done + 1
+    s.setdefault("history",[]).append({"time": now.strftime("%Y-%m-%d %H:%M:%S"), "event":"commit"})
+with open(state_path,'w') as f:
+    json.dump(s,f)
+print(json.dumps({"should_run": int(should_run), "target_runs": s["target_runs"], "runs_done": s["runs_done"], "date": s["date"]}))
+PY
+          cat /tmp/decision.json
+          should_run=$(python3 -c "import sys, json;print(int(json.load(open('/tmp/decision.json'))['should_run']))")
+          target_runs=$(python3 -c "import sys, json;print(json.load(open('/tmp/decision.json'))['target_runs'])")
+          runs_done=$(python3 -c "import sys, json;print(json.load(open('/tmp/decision.json'))['runs_done'])")
+          echo "should_run=${should_run}" >> $GITHUB_OUTPUT
+          echo "target_runs=${target_runs}" >> $GITHUB_OUTPUT
+          echo "runs_done=${runs_done}" >> $GITHUB_OUTPUT
 
-      - name: Setup Git Configuration
+      - name: Persist state only (no timestamp commit)
+        if: steps.decide.outputs.should_run != '1'
         run: |
           git config user.email "prasetyodefan@gmail.com"
           git config user.name "prasetyodefan"
+          git add .github/schedule_state.json || true
+          git commit -m "chore(schedule): set daily target ${ { steps.decide.outputs.target_runs } } (runs_done=${{ steps.decide.outputs.runs_done }})" .github/schedule_state.json || echo "No state change to commit."
+          git push origin main || echo "No push (maybe nothing to push)"
 
-      - name: Prepare Commit
+      - name: Create TIMESTAMP, commit timestamp + state (selected run)
+        if: steps.decide.outputs.should_run == '1'
         run: |
-          commit_messages=("Update: ⏰" "Refresh: 🔄" "Renew: 🌟" "Revise: 📝" "Amend: 🛠" "Adjust: 🔧" "Change: 📈" "Modify: 🖊" "Transform: 🌀" "Revamp: 🌈")
+          current_time=$(TZ='Asia/Jakarta' date '+%Y-%m-%d %H:%M:%S')
+          echo "Updated on $current_time" > TIMESTAMP.txt
+
+          git config user.email "prasetyodefan@gmail.com"
+          git config user.name "prasetyodefan"
+
+          commit_messages=(
+            "feat: add automated timestamp file"
+            "fix: correct timestamp format"
+            "chore: automated timestamp update"
+            "fix: minor bugfix"
+            "feat: add logging for schedule"
+            "refactor: simplify schedule logic"
+            "docs: update README"
+            "style: format project files"
+            "perf: optimize commit step"
+            "test: add workflow test"
+            "ci: update action config"
+            "build: bump build script"
+            "chore: housekeeping"
+            "fix: resolve merge conflict"
+            "feat: improve state tracking"
+            "chore: update dependencies"
+            "fix: handle empty repo case"
+            "refactor: clean workflow steps"
+            "docs: clarify schedule behavior"
+            "ci: refine push step"
+            "fix: adjust timezone handling"
+            "feat: enhance randomness"
+            "chore: update schedule_state"
+            "fix: small typo"
+            "perf: minimize IO"
+            "refactor: extract functions"
+            "docs: update comments"
+            "feat: add daily limit"
+            "fix: handle no-change commit"
+            "chore: keep repo tidy"
+            "hotfix: urgent fix"
+            "feat: improve reliability"
+            "fix: edge case handling"
+            "chore: automated commit"
+            "feat: improve message clarity"
+            "fix: logging improvements"
+            "refactor: restructure"
+            "docs: add contribution guide"
+            "ci: update action versions"
+            "test: add unit tests"
+            "chore: maintain schedule state"
+          )
+
           random_msg=${commit_messages[$RANDOM % ${#commit_messages[@]}]}
 
-          git add TIMESTAMP.txt
+          git add TIMESTAMP.txt .github/schedule_state.json
           git commit -m "$random_msg - $current_time" || echo "No changes to commit."
+          git push origin main || echo "No push (maybe nothing to push)"
 
-      - name: GitHub Push
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          branch: main # Hanya push ke branch main
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Done
+        run: echo "Workflow finished. Today's target: ${{ steps.decide.outputs.target_runs }}, runs done: ${{ steps.decide.outputs.runs_done }}."
