@@ -5,7 +5,7 @@ on:
     branches: [main] # Pastikan hanya berjalan di branch main
 
   schedule:
-    - cron: '0 */12 * * *' # Eksekusi setiap 12 jam
+    - cron: '0 */8 * * *' # Eksekusi setiap 12 jam
 
   workflow_dispatch: # Memungkinkan pemicu manual dari UI GitHub
 
