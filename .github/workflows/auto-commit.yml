@@ -5,7 +5,7 @@ on:
     branches: [main] # Pastikan hanya berjalan di branch main
 
   schedule:
-    - cron: '0 */8 * * *' # Eksekusi setiap 12 jam
+    - cron: '0 */6 * * *' # Eksekusi setiap 12 jam
 
   workflow_dispatch: # Memungkinkan pemicu manual dari UI GitHub
 
@@ -37,8 +37,8 @@ jobs:
 
       - name: Setup Git Configuration
         run: |
-          git config user.email "evesuz100@gmail.com"
-          git config user.name "evesuz"
+          git config user.email "prasetyodefan@gmail.com"
+          git config user.name "prasetyodefan"
 
       - name: Prepare Commit
         run: |
